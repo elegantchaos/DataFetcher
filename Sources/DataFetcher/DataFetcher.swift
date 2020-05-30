@@ -14,8 +14,13 @@ import Foundation
  fetcher for testing purposes.
  */
 
-public typealias DataCallback = (Data?, URLResponse?, Error?) -> Void
-public typealias JSONCallback = (JSONDictionary?, URLResponse?, Error?) -> Void
+public typealias DataCallback = (Result<Data, Error>, URLResponse?) -> Void
+public typealias JSONCallback = (Result<JSONDictionary, Error>, URLResponse?) -> Void
+
+public enum DataFetcherError: Error {
+    case couldntDecodeJSON
+    case noDataOrError
+}
 
 public protocol DataTask {
     var isDone: Bool { get }
@@ -38,14 +43,19 @@ public extension DataFetcher {
     }
     
     func json(for request: URLRequest, callback: @escaping JSONCallback) -> DataTask {
-        data(for: request) { data, request, error in
-            let json: JSONDictionary?
-            if let data = data, let parsed = try? JSONSerialization.jsonObject(with: data, options: []) {
-                json = parsed as? JSONDictionary
-            } else {
-                json = nil
+        data(for: request) { result, request in
+            let translated: Result<JSONDictionary, Error>
+            switch result {
+            case .success(let data):
+                if let parsed = try? JSONSerialization.jsonObject(with: data, options: []), let json = parsed as? JSONDictionary {
+                    translated = .success(json)
+                } else {
+                    translated = .failure(DataFetcherError.couldntDecodeJSON)
+                }
+            case .failure(let error):
+                translated = .failure(error)
             }
-            callback(json, request, error)
+            callback(translated, request)
         }
     }
 }
@@ -59,7 +69,13 @@ extension URLSessionDataTask: DataTask {
 extension URLSession: DataFetcher {
     public func data(for request: URLRequest, callback: @escaping DataCallback) -> DataTask {
         let task = dataTask(with: request) { data, response, error in
-            callback(data, response, error)
+            if let error = error {
+                callback(.failure(error), response)
+            } else if let data = data {
+                callback(.success(data), response)
+            } else {
+                callback(.failure(DataFetcherError.noDataOrError), response)
+            }
         }
         return task
     }

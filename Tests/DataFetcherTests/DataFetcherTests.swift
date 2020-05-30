@@ -2,48 +2,46 @@ import XCTest
 @testable import DataFetcher
 
 final class JSONSessionTests: XCTestCase {
-    struct A: Codable {
+    struct A: Codable, DataConvertible {
         let name: String
     }
 
-    func testData() {
+    func testString() {
         let x = expectation(description: "Decoded")
         let url = URL(string: "https://test.com/test")!
         let fetcher = MockDataFetcher(output: [
             url : .init(for: 200, return: "test")
         ])
         
-        let task = fetcher.data(for: url) { data, request, error in
+        let task = fetcher.data(for: url) { result, request in
             x.fulfill()
-            XCTAssertNotNil(data)
-            XCTAssertNil(error)
+            switch result {
+            case .success(let data): XCTAssertEqual(String(data: data, encoding: .utf8), "test")
+            case .failure(let error): XCTFail("Unexpected error \(error).")
+            }
         }
         
         task.resume()
         wait(for: [x], timeout: 1.0)
     }
 
-    func testExample() {
+    func testCodable() {
         let a = A(name: "test")
-        let encoder = JSONEncoder()
-        let json = try! encoder.encode(a)
         let x = expectation(description: "Decoded")
         let url = URL(string: "https://test.com/test")!
         let fetcher = MockDataFetcher(output: [
-            url : .init(for: 200, return: json)
+            url : .init(for: 200, return: a)
         ])
         
-        let task = fetcher.data(for: url) { data, request, error in
+        let task = fetcher.data(for: url) { result, request in
             x.fulfill()
-            XCTAssertNotNil(data)
-            XCTAssertNil(error)
+            switch result {
+            case .success(let data): XCTAssertEqual(String(data: data, encoding: .utf8), "test")
+            case .failure(let error): XCTFail("Unexpected error \(error).")
+            }
         }
         
         task.resume()
         wait(for: [x], timeout: 1.0)
     }
-
-    static var allTests = [
-        ("testExample", testExample),
-    ]
 }

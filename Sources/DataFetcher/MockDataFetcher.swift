@@ -9,6 +9,13 @@ protocol DataConvertible {
     var asData: Data? { get }
 }
 
+extension DataConvertible where Self: Encodable {
+    var asData: Data? {
+        let encoder = JSONEncoder()
+        return try? encoder.encode(self)
+    }
+}
+
 extension String: DataConvertible {
     var asData: Data? { return data(using: .utf8) }
 }
@@ -36,28 +43,13 @@ public struct MockDataFetcher: DataFetcher {
             DispatchQueue.global(qos: .default).async(execute: execute)
         }
         
-        func blah<T>(for t: T) -> Data? {
-            return nil
-        }
-        
-        func blah<T>(for t: T) -> Data? where T: DataConvertible {
-            return t.asData
-        }
-        
-        func blah<T>(for t: T) -> Data? where T: Encodable {
-            let encoder = JSONEncoder()
-            return try? encoder.encode(t)
-        }
-        
         func execute() {
             if let data = payload as? Data {
-                callback(data, response, nil)
+                callback(.success(data), response)
             } else if let convertible = payload as? DataConvertible, let data = convertible.asData {
-                callback(data, response, nil)
-            } else if let data = blah(for: payload) {
-                callback(data, response, nil)
+                callback(.success(data), response)
             } else if let error = payload as? Error {
-                callback(nil, response, error)
+                callback(.failure(error), response)
             } else {
                 fatalError("Invalid payload type \(payload).")
             }
