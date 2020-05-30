@@ -4,21 +4,7 @@
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 import Foundation
-
-protocol DataConvertible {
-    var asData: Data? { get }
-}
-
-extension DataConvertible where Self: Encodable {
-    var asData: Data? {
-        let encoder = JSONEncoder()
-        return try? encoder.encode(self)
-    }
-}
-
-extension String: DataConvertible {
-    var asData: Data? { return data(using: .utf8) }
-}
+import Coercion
 
 /**
  Test fetcher which ignores the URL and just returns the data it's been given.

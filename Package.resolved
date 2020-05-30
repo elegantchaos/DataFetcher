@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Coercion",
+        "repositoryURL": "https://github.com/elegantchaos/Coercion.git",
+        "state": {
+          "branch": null,
+          "revision": "5a90badec5efe8c3524a40bf78a50ffcb8307828",
+          "version": "1.0.1"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
