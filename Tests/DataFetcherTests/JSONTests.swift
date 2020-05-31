@@ -3,7 +3,7 @@ import Coercion
 
 @testable import DataFetcher
 
-final class JSONTests: XCTestCase {
+final class JSONTests: TestCase {
     struct A: Codable, DataConvertible {
         let name: String
     }
