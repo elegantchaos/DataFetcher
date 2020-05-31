@@ -12,6 +12,10 @@ struct TestError: Error {
     var localizedDescription: String { "example error" }
 }
 
+struct TestStruct: Codable, DataConvertible, Equatable {
+    let value: Int
+}
+
 func XCTAssertResultsMatch<T>(_ r1: Result<T, Error>, _ r2: Result<T, Error>, file: StaticString = #file, line: UInt = #line) where T: Equatable {
     if case let .success(d1) = r1, case let .success(d2) = r2 {
         XCTAssertEqual(d1, d2, file: file, line: line)
