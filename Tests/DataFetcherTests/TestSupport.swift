@@ -8,13 +8,11 @@ import Coercion
 
 @testable import DataFetcher
 
-typealias DataResult = Result<Data, Error>
-
 struct TestError: Error {
     var localizedDescription: String { "example error" }
 }
 
-func XCTAssertResultsMatch(_ r1: DataResult, _ r2: DataResult, file: StaticString = #file, line: UInt = #line) {
+func XCTAssertResultsMatch<T>(_ r1: Result<T, Error>, _ r2: Result<T, Error>, file: StaticString = #file, line: UInt = #line) where T: Equatable {
     if case let .success(d1) = r1, case let .success(d2) = r2 {
         XCTAssertEqual(d1, d2, file: file, line: line)
     } else if case let .failure(e1) = r1, case let .failure(e2) = r2 {
@@ -25,24 +23,25 @@ func XCTAssertResultsMatch(_ r1: DataResult, _ r2: DataResult, file: StaticStrin
 }
 
 class TestCase: XCTestCase {
-   
-   func check(send payload: Any, for code: Int, expecting: DataResult, file: StaticString = #file, line: UInt = #line) {
-       var returned: Result<Data, Error>?
-       let x = expectation(description: "Decoded")
-       let url = URL(string: "https://test.com/test")!
-       let fetcher = MockDataFetcher(output: [
-           url : .init(for: code, return: payload)
-       ])
-       
-       let task = fetcher.data(for: url) { result, request in
-           returned = result
-           x.fulfill()
-       }
-       
-       task.resume()
-       wait(for: [x], timeout: 1.0)
-       
-       XCTAssertNotNil(returned)
-       XCTAssertResultsMatch(returned!, expecting, file: file, line: line)
-   }
+    
+    func check<T>(send payload: Any, for code: Int, expecting: Result<T, Error>, method: @escaping (DataFetcher, URL, @escaping (Result<T, Error>, URLResponse?) -> Void) -> DataTask, file: StaticString = #file, line: UInt = #line) where T: Equatable {
+        var returned: Result<T, Error>?
+        let x = expectation(description: "Decoded")
+        let url = URL(string: "https://test.com/test")!
+        let fetcher = MockDataFetcher(output: [
+            url : .init(for: code, return: payload)
+        ])
+        
+        let task = method(fetcher, url, { result, request in
+            returned = result
+            x.fulfill()
+        })
+        
+        
+        task.resume()
+        wait(for: [x], timeout: 1.0)
+        
+        XCTAssertNotNil(returned)
+        XCTAssertResultsMatch(returned!, expecting, file: file, line: line)
+    }
 }
