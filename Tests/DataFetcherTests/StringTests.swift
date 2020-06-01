@@ -1,3 +1,9 @@
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//  Created by Sam Deane on 31/05/2020.
+//  All code (c) 2020 - present day, Elegant Chaos Limited.
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+#if !os(watchOS)
 import XCTest
 import Coercion
 
@@ -11,9 +17,10 @@ final class StringTests: TestCase {
     }
     
     func testError() {
-        check(send: TestError(), for: 404, expecting: .failure(TestError()), method: { fetcher, url, callback in
+        check(send: ExampleError(), for: 404, expecting: .failure(ExampleError()), method: { fetcher, url, callback in
             fetcher.string(for: url, callback: callback)
         })
     }
   
 }
+#endif

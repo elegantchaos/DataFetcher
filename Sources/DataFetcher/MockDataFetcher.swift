@@ -52,13 +52,17 @@ public struct MockDataFetcher: DataFetcher {
         let code: Int
         let payload: Any
         
-        init(for code: Int, return payload: Any) {
+        init(_ payload: Any, withStatus code: Int) {
             self.code = code
             self.payload = payload
         }
     }
 
     public let output: [URL:Output]
+    
+    public init(for url: URL, return payload: Any, withStatus code: Int) {
+        self.output = [url:Output(payload, withStatus: code)]
+    }
     
     public init(output: [URL:Output]) {
         self.output = output
