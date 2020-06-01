@@ -11,13 +11,13 @@ import Coercion
 
 final class StringTests: TestCase {
     func testString() {
-        check(send: "test", for: 200, expecting: .success("test"), method: { fetcher, url, callback in
+        check(send: .init("test", withStatus: 200), expecting: .success("test"), method: { fetcher, url, callback in
             fetcher.string(for: url, callback: callback)
         })
     }
     
     func testError() {
-        check(send: ExampleError(), for: 404, expecting: .failure(ExampleError()), method: { fetcher, url, callback in
+        check(send: .init(ExampleError(), withStatus: 404), expecting: .failure(ExampleError()), method: { fetcher, url, callback in
             fetcher.string(for: url, callback: callback)
         })
     }

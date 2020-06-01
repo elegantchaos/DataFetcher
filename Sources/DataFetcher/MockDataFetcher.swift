@@ -17,12 +17,12 @@ import Coercion
  */
 
 public struct MockDataFetcher: DataFetcher {
-    public class Task<Payload>: DataTask {
-        let payload: Payload
+    public class Task: DataTask {
+        let payload: Result<Data, Error>
         let response: URLResponse?
         let callback: DataCallback
         
-        init(_ payload: Payload, response: URLResponse? = nil, callback: @escaping DataCallback) {
+        init(_ payload: Result<Data,Error>, response: URLResponse? = nil, callback: @escaping DataCallback) {
             self.payload = payload
             self.response = response
             self.callback = callback
@@ -35,35 +35,65 @@ public struct MockDataFetcher: DataFetcher {
         }
         
         func execute() {
-            if let data = payload as? Data {
-                callback(.success(data), response)
-            } else if let convertible = payload as? DataConvertible, let data = convertible.asData {
-                callback(.success(data), response)
-            } else if let error = payload as? Error {
-                callback(.failure(error), response)
-            } else {
-                fatalError("Invalid payload type \(payload).")
-            }
+            callback(payload, response)
             isDone = true
         }
     }
 
     public struct Output {
         let code: Int
-        let payload: Any
-        
-        init(_ payload: Any, withStatus code: Int) {
+        let payload: Result<Data, Error>
+
+        public init<T>(_ payload: T, withStatus code: Int) where T: Encodable, T: DataConvertible { /// DataConvertible takes precendence over Encodable
             self.code = code
-            self.payload = payload
+            self.payload = .success(payload.asData!)
+        }
+
+        public init<T>(_ rawPayload: T, withStatus code: Int) where T: Encodable {
+            let encoder = JSONEncoder()
+            let encoded = try! encoder.encode(rawPayload)
+            self.code = code
+            self.payload = .success(encoded)
+        }
+
+        public init<T>(_ payload: T, withStatus code: Int) where T: DataConvertible {
+            self.code = code
+            self.payload = .success(payload.asData!)
+        }
+
+        init(_ error: Error, withStatus code: Int) {
+            self.code = code
+            self.payload = .failure(error)
+        }
+        
+        init(_ data: Data, withStatus code: Int) {
+            self.code = code
+            self.payload = .success(data)
         }
     }
 
     public let output: [URL:Output]
-    
-    public init(for url: URL, return payload: Any, withStatus code: Int) {
+
+    public init<T>(for url: URL, return payload: T, withStatus code: Int) where T: Encodable, T: DataConvertible {
         self.output = [url:Output(payload, withStatus: code)]
     }
-    
+
+    public init<T>(for url: URL, return payload: T, withStatus code: Int) where T: Encodable {
+        self.output = [url:Output(payload, withStatus: code)]
+    }
+
+    public init<T>(for url: URL, return payload: T, withStatus code: Int) where T: DataConvertible {
+        self.output = [url:Output(payload, withStatus: code)]
+    }
+
+    public init(for url: URL, return data: Data, withStatus code: Int) {
+        self.output = [url:Output(data, withStatus: code)]
+    }
+
+    public init(for url: URL, return error: Error, withStatus code: Int) {
+        self.output = [url:Output(error, withStatus: code)]
+    }
+
     public init(output: [URL:Output]) {
         self.output = output
     }

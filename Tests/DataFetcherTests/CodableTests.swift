@@ -13,14 +13,14 @@ import Coercion
 final class CodableTests: TestCase {
     func testCodable() {
         let a = ExampleStruct(value: 123)
-        check(send: a, for: 200, expecting: .success(a), method: { fetcher, url, callback in
+        check(send: .init(a, withStatus: 200), expecting: .success(a), method: { fetcher, url, callback in
             fetcher.codable(for: url, callback: callback)
         })
     }
 
     func testError() {
         let expected: Result<ExampleStruct, Error> = .failure(ExampleError())
-        check(send: ExampleError(), for: 404, expecting: expected, method: { fetcher, url, callback in
+        check(send: .init(ExampleError(), withStatus: 404), expecting: expected, method: { fetcher, url, callback in
             fetcher.codable(for: url, callback: callback)
         })
     }
