@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
     name: "DataFetcher",
     platforms: [
-        .macOS(.v10_12), .iOS(.v10), .tvOS(.v10), .watchOS(.v3)
+        .macOS(.v10_13), .iOS(.v10), .tvOS(.v10), .watchOS(.v3)
     ],
     products: [
         .library(
@@ -14,6 +14,7 @@ let package = Package(
     ],
     dependencies: [
          .package(url: "https://github.com/elegantchaos/Coercion.git", from: "1.0.3"),
+         .package(url: "https://github.com/elegantchaos/XCTestExtensions.git", from: "1.1.2"),
     ],
     targets: [
         .target(
@@ -21,6 +22,6 @@ let package = Package(
             dependencies: ["Coercion"]),
         .testTarget(
             name: "DataFetcherTests",
-            dependencies: ["DataFetcher"]),
+            dependencies: ["DataFetcher", "XCTestExtensions"]),
     ]
 )
