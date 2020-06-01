@@ -2,15 +2,6 @@
   "object": {
     "pins": [
       {
-        "package": "Coercion",
-        "repositoryURL": "https://github.com/elegantchaos/Coercion.git",
-        "state": {
-          "branch": null,
-          "revision": "6872c101780abbe62bfe6e2498a2a3b14813ccd6",
-          "version": "1.0.3"
-        }
-      },
-      {
         "package": "XCTestExtensions",
         "repositoryURL": "https://github.com/elegantchaos/XCTestExtensions.git",
         "state": {
